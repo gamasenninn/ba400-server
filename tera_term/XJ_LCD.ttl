@@ -1,0 +1,1 @@
+send 27 "XJ:please set tag " 10 0
