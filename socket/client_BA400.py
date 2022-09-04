@@ -26,7 +26,8 @@ def recv_data(sock):
             data = sock.recv(1024)
             if data == b"":
                 break
-            print(data.decode("utf-8"))
+            print(data)
+            #print(data.decode("utf-8"))
         except ConnectionResetError:
             break
         except OSError:
@@ -41,15 +42,17 @@ while True:
     com_str = input("> ")
     if com_str == '':  #空打ちの場合
         continue
-    if com_str == 'quit': #quitで終了
+    elif com_str == 'quit': #quitで終了
         break
-
-    # コマンド作成
-    b_com = b'\x1b' +com_str.encode('utf-8') + b'\x0a\x00'
-    print(b_com)
-
-    # コマンド送信
-    sock.send(b_com)
+    elif com_str == 'file':
+        pass
+    else:
+        # コマンド作成
+        for c in com_str.splitlines():
+            b_com = b'\x1b' +c.encode('utf-8') + b'\x0a\x00'
+            print(b_com)
+            # コマンド送信
+            sock.send(b_com)
 
 sock.shutdown(socket.SHUT_RDWR)
 sock.close()
