@@ -6,6 +6,8 @@ import sys
 # サーバーIPとポート番号
 IPADDR = "192.168.11.205"
 PORT = 9100
+#ENCODE = 'utf-8'
+ENCODE = 'cp932'
 
 sinfo = socket.getaddrinfo(IPADDR, PORT)
 print("info:",sinfo)
@@ -49,7 +51,7 @@ while True:
     else:
         # コマンド作成
         for c in com_str.splitlines():
-            b_com = b'\x1b' +c.encode('utf-8') + b'\x0a\x00'
+            b_com = b'\x1b' +c.encode(ENCODE) + b'\x0a\x00'
             print(b_com)
             # コマンド送信
             sock.send(b_com)
