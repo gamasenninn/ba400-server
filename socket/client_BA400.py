@@ -41,8 +41,10 @@ thread = threading.Thread(target=recv_data, args=(sock,))
 thread.start()
 
 while True:
-    com_str = input("> ")
+    com_str = input("> ").strip()
     if com_str == '':  #空打ちの場合
+        continue
+    if com_str[0] == '#':  #空打ちの場合
         continue
     elif com_str == 'quit': #quitで終了
         break
