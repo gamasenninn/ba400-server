@@ -38,6 +38,7 @@ def recv_data(sock):
 
 # データ受信をサブスレッドで実行
 thread = threading.Thread(target=recv_data, args=(sock,))
+thread.setDaemon(True)
 thread.start()
 
 while True:
@@ -60,3 +61,4 @@ while True:
 
 sock.shutdown(socket.SHUT_RDWR)
 sock.close()
+sys.exit()
