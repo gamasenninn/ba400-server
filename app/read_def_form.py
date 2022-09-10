@@ -11,7 +11,7 @@ def ssend(com_str):
     b_com = b'\x1b' +com_str.encode(prt_encoding) + b'\x0a\x00'
     #print(b_com)
     # コマンド送信
-    sock.send(b_com)
+    #sock.send(b_com)
 
 with open(filepath, 'r', encoding=encoding) as f:                # ファイルを開く (encoding 注意)
     jsonc_text = f.read()     
@@ -70,8 +70,8 @@ for xb in xbs:
     ssend (command)
 
 # data
-data = conf['data']
-for d in data:
+fields = conf['fields']
+for d in fields:
     #print(d['command'])
     if d['command'] == "RC":
         command = f"RC{d['number']};{d['content']}"

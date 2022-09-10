@@ -84,10 +84,11 @@
             }
         ]
     },
-    "data": [
+    "fields": [
         {
             "command": "RC",
             "number": "001",
+            "fid": "scode",
             "content": "14687-1"
         },
         {
