@@ -4,17 +4,44 @@ import sys
 
 # --- read JSONC ------
 IS_SEND = False
+IS_LOG = True
+LOG_FILE_PATH = "tpcl_send.log"
+SOCKET_TIME_OUT = 5
+
+#----- error code -----
+ERR_SOCKET_TIME_OUT = -101 
 
 def ssend(com_str,socket,prt_encoding='cp932'):
-    print(com_str)
+    #print(com_str)
     b_com = b'\x1b' + com_str.encode(prt_encoding) + b'\x0a\x00'
     # print(b_com)
     # コマンド送信
     if IS_SEND:
         socket.send(b_com)
+    if IS_LOG:
+        encoding = 'utf-8'
+        with open(LOG_FILE_PATH, 'a', encoding=encoding) as f:                # ファイルを開く (encoding 注意)
+            f.write(com_str+"\n")
+
+
+def read_jsonc_file(jsonc_filepath,encoding='utf-8'):
+    try:
+        with open(jsonc_filepath, 'r', encoding=encoding) as f:                # ファイルを開く (encoding 注意)
+            jsonc_text = f.read()
+
+        return JsoncParser.parse_str(jsonc_text)
+
+    except FileNotFoundError:
+        print('ファイルが存在しません。')
+        return {}
 
 
 def tpcl_maker(conf):
+    if IS_LOG:
+        encoding = 'utf-8'
+        with open(LOG_FILE_PATH, 'w', encoding=encoding) as f:                # ファイルを開く (encoding 注意)
+            pass
+
     # --- printer IP ----
     ip = conf['device']['ip']
     port = int(conf['device']['port'])
@@ -27,7 +54,12 @@ def tpcl_maker(conf):
     sock = socket.socket(socket.AF_INET, 0, 0)
 
     # connect to printer
-    sock.connect((ip, port))
+    sock.settimeout(SOCKET_TIME_OUT)
+    try:
+        sock.connect((ip, port))
+    except socket.timeout:
+        #print('タイムアウトエラー')
+        return ERR_SOCKET_TIME_OUT
 
     # --- D: setttingLable ----
     sl = conf['setLabel']
@@ -98,9 +130,11 @@ def tpcl_maker(conf):
     sock.shutdown(socket.SHUT_RDWR)
     sock.close()
 
+    return True
+
 #------- initial ---------
 if __name__ == '__main__':
-    
+
     jsonc_filepath = 'print_conf_ip.jsonc'
     encoding = 'utf-8'
     prt_encoding = 'cp932'
@@ -112,16 +146,9 @@ if __name__ == '__main__':
         jsonc_filepath = args[1]
     else:
         print("パラメータエラー\n")
-        sys.exit()        
+        sys.exit()
 
-    try:
-        with open(jsonc_filepath, 'r', encoding=encoding) as f:                # ファイルを開く (encoding 注意)
-            jsonc_text = f.read()
-
-        conf = JsoncParser.parse_str(jsonc_text)
+    conf = read_jsonc_file(jsonc_filepath)
+    if conf:
         tpcl_maker(conf)
-
-    except FileNotFoundError:
-        print('ファイルが存在しません。')
-
 
