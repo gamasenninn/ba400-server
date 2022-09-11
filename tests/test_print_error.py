@@ -8,6 +8,7 @@ from app import tpcl_maker as t
 
 class PrintErrorTest(unittest.TestCase):
 
+    #---ソケット関連のエラーテスト--
     def test_socket(self):
         jsonc_filepath = 'test_print_normal.jsonc'
         #log_filepath = 'tpcl_send.log'
@@ -21,5 +22,17 @@ class PrintErrorTest(unittest.TestCase):
             
         self.assertEqual(result,-101)
 
-        #self.assertTrue(filecmp.cmp(log_filepath,exp_filepath,shallow=True))
-        #self.assertTrue(filecmp(log_filepath,exp_filepath,shallow=True))
+        conf = t.read_jsonc_file(jsonc_filepath)
+        if conf:
+            #存在しないポートを指定する
+            conf['device']['port'] = 9102
+            result = t.tpcl_maker(conf)
+            
+        self.assertEqual(result,-102)
+
+    #---ファイル関連のエラーテスト--
+    def test_file_not_found(self):
+        jsonc_filepath = 'test_print_normalXXXXX.jsonc'
+
+        with self.assertRaises(FileNotFoundError):
+            conf = t.read_jsonc_file(jsonc_filepath)

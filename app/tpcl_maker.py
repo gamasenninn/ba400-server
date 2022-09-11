@@ -2,20 +2,21 @@ from jsonc_parser.parser import JsoncParser
 import socket
 import sys
 
-# --- read JSONC ------
+# --- config value ------
 IS_SEND = False
 IS_LOG = True
 LOG_FILE_PATH = "tpcl_send.log"
 SOCKET_TIME_OUT = 5
 
 #----- error code -----
-ERR_SOCKET_TIME_OUT = -101 
+ERR_SOCKET_TIME_OUT = -101
+ERR_CNNECTION_REFUSED = -102
 
+#----コマンド送信 -----
 def ssend(com_str,socket,prt_encoding='cp932'):
     #print(com_str)
     b_com = b'\x1b' + com_str.encode(prt_encoding) + b'\x0a\x00'
     # print(b_com)
-    # コマンド送信
     if IS_SEND:
         socket.send(b_com)
     if IS_LOG:
@@ -23,19 +24,19 @@ def ssend(com_str,socket,prt_encoding='cp932'):
         with open(LOG_FILE_PATH, 'a', encoding=encoding) as f:                # ファイルを開く (encoding 注意)
             f.write(com_str+"\n")
 
-
+#----- JSONC定義ファイルの読み込み -------
 def read_jsonc_file(jsonc_filepath,encoding='utf-8'):
-    try:
-        with open(jsonc_filepath, 'r', encoding=encoding) as f:                # ファイルを開く (encoding 注意)
+    
+    with open(jsonc_filepath, 'r', encoding=encoding) as f:                # ファイルを開く (encoding 注意)
+        try:
             jsonc_text = f.read()
+            return JsoncParser.parse_str(jsonc_text)
 
-        return JsoncParser.parse_str(jsonc_text)
+        except FileNotFoundError:
+            print('ファイルが存在しません。')
+            return {}
 
-    except FileNotFoundError:
-        print('ファイルが存在しません。')
-        return {}
-
-
+#------ tpcl コマンドを編集し、送信する ------
 def tpcl_maker(conf):
     if IS_LOG:
         encoding = 'utf-8'
@@ -46,20 +47,19 @@ def tpcl_maker(conf):
     ip = conf['device']['ip']
     port = int(conf['device']['port'])
 
-    # socket info
-    sinfo = socket.getaddrinfo(ip, port)
-    print("info:", sinfo)
-
     # create socket
+# with で全体を囲んだほうがよいのではないか？
     sock = socket.socket(socket.AF_INET, 0, 0)
-
     # connect to printer
     sock.settimeout(SOCKET_TIME_OUT)
     try:
         sock.connect((ip, port))
-    except socket.timeout:
-        #print('タイムアウトエラー')
+    except socket.timeout: #タイムアウトエラー
+        sock.close()
         return ERR_SOCKET_TIME_OUT
+    except ConnectionRefusedError: #コネクション拒否エラー
+        sock.close()
+        return ERR_CNNECTION_REFUSED
 
     # --- D: setttingLable ----
     sl = conf['setLabel']
