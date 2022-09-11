@@ -100,6 +100,7 @@ def tpcl_maker(conf):
 
 #------- initial ---------
 if __name__ == '__main__':
+    
     jsonc_filepath = 'print_conf_ip.jsonc'
     encoding = 'utf-8'
     prt_encoding = 'cp932'
@@ -113,8 +114,14 @@ if __name__ == '__main__':
         print("パラメータエラー\n")
         sys.exit()        
 
-    with open(jsonc_filepath, 'r', encoding=encoding) as f:                # ファイルを開く (encoding 注意)
-        jsonc_text = f.read()
-    conf = JsoncParser.parse_str(jsonc_text)
+    try:
+        with open(jsonc_filepath, 'r', encoding=encoding) as f:                # ファイルを開く (encoding 注意)
+            jsonc_text = f.read()
 
-    tpcl_maker(conf)
+        conf = JsoncParser.parse_str(jsonc_text)
+        tpcl_maker(conf)
+
+    except FileNotFoundError:
+        print('ファイルが存在しません。')
+
+
