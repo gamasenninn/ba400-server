@@ -88,28 +88,32 @@
         {
             "command": "RC",
             "number": "001",
-            "fid": "scode",
-            "content": "14687-1"
+            "bind": "scode",
+            "default": "14687-1"
         },
         {
             "command": "RC",
             "number": "002",
-            "content": "2020/12/22 田中"
+            "bind": "datePerson",
+            "default": "2020/12/22 田中"
         },
         {
             "command": "RC",
             "number": "003",
-            "content": "コンバインAA580 58馬力 クボタ 3条刈 自動水平"
+            "bind": "title",
+            "default": "コンバインAA580 58馬力 クボタ 3条刈 自動水平"
         },
         {
             "command": "RB",
             "number": "01",
-            "content": "https://www.google.com/search?q=%E9%A3%9B%E8%A1%8C%E8%88%B9"
+            "bind": "qrData",
+            "default": "https://www.google.com/search?q=%E9%A3%9B%E8%A1%8C%E8%88%B9"
         },
         {
             "command": "RB",
             "number": "02",
-            "content": "12345-1"
+            "bind": "scode",
+            "default": "12345-1"
         },
         {
             "command": "XS",
@@ -121,6 +125,20 @@
             "ribbon": "2", //0,1,2
             "tagRotation": "0",
             "statusResponse": "0" //0,1
+        }
+    ],
+    "data":[
+        {
+            "scode": "14687-1",
+            "datePerson": "2020/12/22 田中",
+            "title": "コンバインAA580 58馬力 クボタ 3条刈 自動水平",
+            "qrData": "https://www.google.com/search?q=%E9%A3%9B%E8%A1%8C%E8%88%B9"            
+        },
+        {
+            "scode": "14687-2",
+            "datePerson": "2020/12/22 佐藤",
+            "title": "トラクターBB999 30馬力 ヤンマー 自動水平",
+            "qrData": "https://www.google.com/search?q=%E9%A3%9B%E8%A1%8C%E8%88%B9"            
         }
     ],
     "final": [
