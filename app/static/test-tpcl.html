@@ -45,7 +45,7 @@
 
 <style>
   .bg {
-    background-color:#e9ecef;
+    background-color: #e9ecef;
   }
 
   [v-cloak] {
@@ -58,24 +58,24 @@
   <b-container class="pt-2">
     <!-- b-row class="justify-content-center" -->
     <b-card nobody title="TPCL表示テスト(JSONファイルからTPCLを作成)" style="max-width: 100rem;" class="bg-transparent border-0">
-      <b-form-file v-model="upfile" class="mt-3" plain ></b-form-file>
+      <b-form-file v-model="upfile" class="mt-3" plain></b-form-file>
       <b-row class="mt-3">
         <b-col>
           <div id="editor" style="min-height: 400px" class="mb-3"></div>
-          <b-button variant="primary" class="text-center" @click="goTpcl" >Go print</b-button>
+          <b-button variant="primary" class="text-center" @click="goTpcl">Go print</b-button>
         </b-col>
 
       </b-row>
       <b-row>
         <b-col>
-          <canvas width="250" height="100">
-            
+          <canvas class="mt-3" id="layout" width="640" height="480" style="background-color:silver;border: 1px solid;">
+
           </canvas>
 
         </b-col>
         <b-col>
           <h2 class="mt-3">変換結果</h2>
-          <pre class="mt-2">{{resultTpcl}}</pre>  
+          <pre class="mt-2">{{resultTpcl}}</pre>
         </b-col>
       </b-row>
     </b-card>
@@ -91,7 +91,7 @@
     data: {
       //jsonPdf: [],
       upfile: "",
-      resultTpcl : ""
+      resultTpcl: ""
     },
     methods: {
       goTpcl: async function () {
@@ -100,23 +100,23 @@
         let jsonData = editor.getSession().getValue()
         jsonObj = JSON.parse(jsonData)
         await axios.post(url, jsonObj)
-        .then(function (response) {
+          .then(function (response) {
             console.log(response);
-            self.resultTpcl = response.data.data            
+            self.resultTpcl = response.data.data
             //window.open('/pdf/'+response.data,"_blank")
-        });
+          });
       }
     },
-    watch:{
-      upfile: function(newVal,oldVal){
+    watch: {
+      upfile: function (newVal, oldVal) {
         self = this;
         let reader = new FileReader()
-        reader.readAsText(this.upfile,'UTF-8')
-        reader.onload = ()=>{
+        reader.readAsText(this.upfile, 'UTF-8')
+        reader.onload = () => {
           self.jsonPdf = reader.result
           editor.getSession().setValue(reader.result)
         }
-        
+
       }
     }
 
@@ -128,7 +128,35 @@
   editor.getSession().setMode("ace/mode/json");
   editor.getSession().setUseWrapMode(true);
   editor.getSession().setTabSize(2);
-  
+
+</script>
+
+<script>
+  window.onload = function () {
+    draw_layout();
+/*
+    var canvas = document.getElementById('layout');  // HTMLCanvasElement
+    var ctx = canvas.getContext('2d');  // CanvasRenderingContext2D
+    ctx.font = '12pt sans-serif';
+    ctx.strokeStyle = '#f00';
+    //ctx.lineWidth = 3;
+    ctx.fillText('PC001/scode', 20 + 2, 40 - 2);
+
+    ctx.strokeRect(20, 40, 150, -20);
+*/
+  };
+
+  function draw_layout(){
+    var canvas = document.getElementById('layout');  // HTMLCanvasElement
+    var ctx = canvas.getContext('2d');  // CanvasRenderingContext2D
+    ctx.font = '12pt sans-serif';
+    ctx.strokeStyle = '#f00';
+    //ctx.lineWidth = 3;
+    ctx.fillText('PC001/scode', 20 + 2, 40 - 2);
+
+    ctx.strokeRect(20, 40, 150, -20);
+  }
+
 </script>
 
 </html>
