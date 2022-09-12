@@ -1,12 +1,15 @@
 from jsonc_parser.parser import JsoncParser
 import socket
 import sys
+from PIL import Image, ImageDraw, ImageFont
 
 # --- config value ------
 IS_SEND = False
 IS_LOG = True
 LOG_FILE_PATH = "tpcl_send.log"
 SOCKET_TIME_OUT = 5
+IS_IMAGE = True
+IMAGE_FILE_PATH = "tpcl_preview.png"
 
 # ----- error code -----
 ERR_SOCKET_TIME_OUT = -101
@@ -54,10 +57,11 @@ def tpcl_maker(conf):
     port = int(conf['device']['port'])
     # if 'isPrintOut' in conf['device']:
     global IS_SEND
-    if 'isPrintOut' in conf['device']:
-        IS_SEND = eval(conf['device']['isPrintOut'])
-    else:
-        IS_SEND = "False"
+    IS_SEND = eval(conf['device']['isPrintOut']
+                   ) if 'isPrintOut' in conf['device'] else False
+    global IS_IMAGE
+    IS_IMAGE = eval(conf['device']['isImage']
+                    ) if 'isImage' in conf['device'] else False
     # create socket
 # with で全体を囲んだほうがよいのではないか？
     sock = socket.socket(socket.AF_INET, 0, 0)
@@ -74,8 +78,19 @@ def tpcl_maker(conf):
 
     # --- D: setttingLable ----
     sl = conf['setLabel']
-    command = f"D{sl['pitch']},{sl['width']},{sl['hight']}"
+    command = f"D{sl['pitch']},{sl['width']},{sl['height']}"
     ssend(command, sock)
+    # image
+    if IS_IMAGE:
+        width = int(int(sl['width'])/10*3.78)
+        height = int(int(sl['height'])/10*3.78)
+        pitch = int(int(sl['pitch'])/10*3.78)
+        base_width = int(int("1150")/10*3.78)
+        x_mergin = int((base_width-width)/2)
+        y_mergin = int((pitch-height)/2)
+        im = Image.new("RGB", (base_width, pitch), (128, 128, 128))
+        draw = ImageDraw.Draw(im)
+        draw.rectangle((x_mergin, y_mergin, width, height))
 
     # --- define format ----
     sf = conf['setFormat']
@@ -95,6 +110,17 @@ def tpcl_maker(conf):
 
         command = f"PC{pc['number']};{pc['x']},{pc['y']},{pc['xR']},{pc['yR']},{pc['fontType']},{pc['fontSpace']},{pc['fontDeco']}{align}"
         ssend(command, sock)
+        if IS_IMAGE:
+            x1 = int(int(pc['x'])/10*3.78)+x_mergin
+            y1 = int(int(pc['y'])/10*3.78)+y_mergin
+            #width = int(int(pc['width'])/10*3.78)
+            width = 50
+            x2 = x1 + width
+            y2 = x2 - 20
+            draw.rectangle((x1, y1, x2, y1))
+            font = ImageFont.truetype('ipaexg.ttf', 12)
+            draw.multiline_text((x1,y1), 'Pillow sample', anchor="ls",fill=(0, 0, 0), font=font)
+
 
     # XB_QR
     xbqrs = sf['XB_QR']
@@ -137,6 +163,8 @@ def tpcl_maker(conf):
         if fin['command'] == "IB":
             command = f"IB"
             ssend(command, sock)
+    if IS_IMAGE:
+        im.save(IMAGE_FILE_PATH, quality=95)
 
     sock.shutdown(socket.SHUT_RDWR)
     sock.close()

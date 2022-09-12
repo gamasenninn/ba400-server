@@ -2,12 +2,13 @@ conf={
   "device": {
     "ip": "192.168.11.205",
     "port": "9100",
-    "isPrintOut": "False"
+    "isPrintOut": "False",
+    "isImage": "True"
   },
   "setLabel": {
     "pitch": "0830",
     "width": "1057",
-    "hight": "0750"
+    "height": "0750"
   },
   "setFormat": {
     "bufferClear": "True",
