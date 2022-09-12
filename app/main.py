@@ -24,10 +24,6 @@ def makepdf():
             with open('tpcl_send.log','r',encoding='utf-8') as f:
                 response = f.read()
                 return {"data":response}
-
-        #uuid_file_name = str(uuid.uuid1())+".pdf"
-        #alter_file_name = ""
-        #alter_file_name = pdf_maker(d,file_name=uuid_file_name)
         return {}
 
 @app.route('/tpclmaker/<jsonc_file>')
