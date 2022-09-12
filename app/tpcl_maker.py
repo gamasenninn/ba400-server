@@ -46,7 +46,9 @@ def tpcl_maker(conf):
     # --- printer IP ----
     ip = conf['device']['ip']
     port = int(conf['device']['port'])
-
+    #if 'isPrintOut' in conf['device']:
+    global IS_SEND
+    IS_SEND = eval(conf['device']['isPrintOut'])
     # create socket
 # with で全体を囲んだほうがよいのではないか？
     sock = socket.socket(socket.AF_INET, 0, 0)

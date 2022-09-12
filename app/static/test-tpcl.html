@@ -66,6 +66,12 @@
         </b-col>
 
       </b-row>
+      <b-row>
+        <b-col>
+          <h2 class="mt-3">変換結果</h2>
+          <pre class="mt-2">{{resultTpcl}}</pre>  
+        </b-col>
+      </b-row>
     </b-card>
   </b-container>
 
@@ -78,16 +84,19 @@
     el: '#app',
     data: {
       //jsonPdf: [],
-      upfile: ""
+      upfile: "",
+      resultTpcl : ""
     },
     methods: {
       goTpcl: async function () {
+        self = this;
         let url = "/tpclmaker";
         let jsonData = editor.getSession().getValue()
         jsonObj = JSON.parse(jsonData)
         await axios.post(url, jsonObj)
         .then(function (response) {
             console.log(response);
+            self.resultTpcl = response.data.data            
             //window.open('/pdf/'+response.data,"_blank")
         });
       }

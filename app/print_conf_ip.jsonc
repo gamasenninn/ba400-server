@@ -5,7 +5,8 @@
     //config printer 
     "device": {
         "ip": "192.168.11.205", //BA400 printer IP address       
-        "port": "9100" // ... port number
+        "port": "9100", // ... port number
+        "isPrintOut": "False"
     },
     //Initial setting label size
     "setLabel": {
