@@ -150,6 +150,10 @@
 
     const canvas = document.getElementById('layout');  // HTMLCanvasElement
     const ctx = canvas.getContext('2d');  // CanvasRenderingContext2D
+
+    //canvas.width = 400;
+    //canvas.height = 300;
+
     //ctx.lineWidth = 3;
     ctx.font = '12pt sans-serif';
     //Label setting
@@ -167,6 +171,11 @@
       const height = cvNumber(sl.height);
       const pitch = cvNumber(sl.pitch);
       const base_width = cvNumber("1150");
+
+      //canvas.width = width+40;
+      //canvas.height = height+40;
+
+
       xMergin = Number((base_width - width) / 2)
       yMergin = Number((pitch - height) / 2)
       ctx.strokeStyle = 'green';
