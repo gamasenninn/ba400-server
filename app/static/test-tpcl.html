@@ -42,6 +42,9 @@
 <script src="https://cozmo.github.io/jsQR/jsQR.js"></script>
 -->
 
+<!-- This will create a global `JSON5` variable. -->
+<script src="https://unpkg.com/json5@2/dist/index.min.js"></script>
+
 
 <style>
   .bg {
@@ -98,7 +101,9 @@
         self = this;
         let url = "/tpclmaker";
         let jsonData = editor.getSession().getValue()
-        jsonObj = JSON.parse(jsonData)
+        //jsonObj = JSON.parse(jsonData)
+        jsonObj = JSON5.parse(jsonData)
+        drawLayout(jsonObj);
         await axios.post(url, jsonObj)
           .then(function (response) {
             console.log(response);
@@ -133,28 +138,90 @@
 
 <script>
   window.onload = function () {
-    draw_layout();
-/*
-    var canvas = document.getElementById('layout');  // HTMLCanvasElement
-    var ctx = canvas.getContext('2d');  // CanvasRenderingContext2D
-    ctx.font = '12pt sans-serif';
-    ctx.strokeStyle = '#f00';
-    //ctx.lineWidth = 3;
-    ctx.fillText('PC001/scode', 20 + 2, 40 - 2);
-
-    ctx.strokeRect(20, 40, 150, -20);
-*/
+    drawLayout({});
   };
+  function cvNumber(str) {
+    return Number(Number(str / 10 * 3.78))
+  }
 
-  function draw_layout(){
-    var canvas = document.getElementById('layout');  // HTMLCanvasElement
-    var ctx = canvas.getContext('2d');  // CanvasRenderingContext2D
-    ctx.font = '12pt sans-serif';
-    ctx.strokeStyle = '#f00';
+  function drawLayout(conf) {
+    console.log("jsonData:", conf);
+    if (!Object.keys(conf).length) return;
+
+    const canvas = document.getElementById('layout');  // HTMLCanvasElement
+    const ctx = canvas.getContext('2d');  // CanvasRenderingContext2D
     //ctx.lineWidth = 3;
-    ctx.fillText('PC001/scode', 20 + 2, 40 - 2);
+    ctx.font = '12pt sans-serif';
+    //Label setting
 
-    ctx.strokeRect(20, 40, 150, -20);
+    console.log("conf:", conf)
+
+    let xMergin = 0;
+    let yMergin = 0;
+
+    ctx.clearRect(0, 0, 640, 480)
+
+    if ('setLabel' in conf) {
+      const sl = conf.setLabel
+      const width = cvNumber(sl.width);
+      const height = cvNumber(sl.height);
+      const pitch = cvNumber(sl.pitch);
+      const base_width = cvNumber("1150");
+      xMergin = Number((base_width - width) / 2)
+      yMergin = Number((pitch - height) / 2)
+      ctx.strokeStyle = 'green';
+      ctx.strokeRect(xMergin, yMergin, width, height);
+    }
+
+    //PC layout
+    if ('PC' in conf.setFormat) {
+      conf.setFormat.PC.forEach(e => {
+        const x1 = cvNumber(e.x) + xMergin
+        const y1 = cvNumber(e.y) + yMergin
+        const width = 100
+        const height = 10
+        const x2 = x1 + width
+        const y2 = y1 - 20
+        ctx.strokeStyle = 'blue';
+        ctx.strokeRect(x1, y1, width, 0);
+        let field = conf.fields.find(v => {
+          if (v.command == "RC" && v.number === e.number) return v
+        })
+        ctx.fillText("PC" + e.number + "/" + field.bind, x1, y1);
+      });
+    }
+
+    //XB_QR layout
+    if ('XB_QR' in conf.setFormat) {
+      conf.setFormat.XB_QR.forEach(e => {
+        const x1 = cvNumber(e.x) + xMergin
+        const y1 = cvNumber(e.y) + yMergin
+        const width = 100
+        const height = 10
+        ctx.strokeStyle = 'blue';
+        ctx.strokeRect(x1, y1, width, width);
+        let field = conf.fields.find(v => {
+          if (v.command == "RB" && v.number === e.number) return v
+        })
+        ctx.fillText("XB" + e.number + "/" + field.bind, x1, y1 + 15);
+      });
+    }
+
+    //XB_BAR layout
+    if ('XB_BAR' in conf.setFormat) {
+      conf.setFormat.XB_BAR.forEach(e => {
+        const x1 = cvNumber(e.x) + xMergin
+        const y1 = cvNumber(e.y) + yMergin
+        const width = cvNumber(e.width) * 50
+        const height = cvNumber(e.height)
+        ctx.strokeStyle = 'blue';
+        ctx.strokeRect(x1, y1, width, height);
+        let field = conf.fields.find(v => {
+          if (v.command == "RB" && v.number === e.number) return v
+        })
+        ctx.fillText("XB" + e.number + "/" + field.bind, x1, y1 + 15);
+      });
+    }
   }
 
 </script>
