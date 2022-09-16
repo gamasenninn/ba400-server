@@ -82,6 +82,15 @@
           <pre class="mt-2">{{resultTpcl}}</pre>
         </b-col>
       </b-row>
+      <b-row>
+        <b-col>
+          <h2 class="mt-3">ステータス</h2>
+          <b-button variant="primary" class="text-center" @click="getStatus">ステータス取得</b-button>
+          <h3 class="mt-2">{{statusMessage}}</h3>
+          <pre class="mt-2">{{analizeStatus}}</pre>
+        </b-col>
+      </b-row>
+
     </b-card>
   </b-container>
 
@@ -95,10 +104,12 @@
     data: {
       //jsonPdf: [],
       upfile: "",
-      resultTpcl: ""
+      resultTpcl: "",
+      analizeStatus: "",
+      statusMessage: "",
     },
     methods: {
-      getTpcl: function(){
+      getTpcl: function () {
         let jsonData = editor.getSession().getValue()
         return JSON5.parse(jsonData)
       },
@@ -114,8 +125,29 @@
             self.resultTpcl = response.data.data
           });
       },
-      checkLayout: function(){
+      checkLayout: function () {
         drawLayout(this.getTpcl());
+      },
+      getStatus: async function () {
+        self = this;
+        let url = "/tpclmaker/status";
+        jsonObj = this.getTpcl()
+        await axios.post(url, jsonObj)
+          .then(function (response) {
+            console.log(response);
+            self.analizeStatus = response.data
+            wn = response.data.find(e=>{
+              if (e.command == "WS"){
+                return e
+              }
+            })
+            console.log("status:",statusCodes[wn.status])
+          });
+        if(wn.status in statusCodes){
+          this.statusMessage = statusCodes[wn.status]
+        }else{
+          this.statusMessage = wn.status
+        }
       }
     },
     watch: {
@@ -155,7 +187,7 @@
 
     const canvas = document.getElementById('layout');  // HTMLCanvasElement
     const ctx = canvas.getContext('2d');  // CanvasRenderingContext2D
- 
+
     ctx.lineWidth = 0.3;
     ctx.font = '10pt sans-serif';
 
@@ -196,7 +228,7 @@
         let field = conf.fields.find(v => {
           if (v.command == "RC" && v.number === e.number) return v
         })
-        ctx.fillText("PC" + e.number + "/" + field.bind, x1, y1-3);
+        ctx.fillText("PC" + e.number + "/" + field.bind, x1, y1 - 3);
       });
     }
 
@@ -233,6 +265,27 @@
     }
   }
 
+</script>
+
+<script>
+statusCodes = {
+  "00": "ON LINE",
+  "01": "HEAD OPEN",
+  "02": "ON LINE",
+  "04": "PAUSE",
+  "05": "ON LINE",
+  "06": "COMMAND ERROR",
+  "07": "COMMS ERROR",
+  "11": "PAPER JAM",
+  "12": "CUTTER ERROR",
+  "13": "NO PAPER",
+  "14": "NO RIBBON",
+  "15": "HEAD OPEN",
+  "17": "HEAD ERROR",
+  "18": "EXCESS HEAD TEMP",
+  "21": "RIBBON ERROR",
+  "24": "COVER OPEN",
+}
 </script>
 
 </html>
