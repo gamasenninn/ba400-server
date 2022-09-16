@@ -69,10 +69,8 @@ def check_status(conf):
 
 def analize_status(conf):
     result = check_status(conf)
-    print(result)
     data = []
     for k, v in result.items():
-        print("result:", k, v)
         if k == "WS": 
             data.append(
                 {
