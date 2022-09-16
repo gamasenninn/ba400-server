@@ -134,14 +134,12 @@
         jsonObj = this.getTpcl()
         await axios.post(url, jsonObj)
           .then(function (response) {
-            console.log(response);
             self.analizeStatus = response.data
             wn = response.data.find(e=>{
               if (e.command == "WS"){
                 return e
               }
             })
-            console.log("status:",statusCodes[wn.status])
           });
         if(wn.status in statusCodes){
           this.statusMessage = statusCodes[wn.status]
