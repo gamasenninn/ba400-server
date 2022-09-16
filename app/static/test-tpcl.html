@@ -65,6 +65,7 @@
       <b-row class="mt-3">
         <b-col>
           <div id="editor" style="min-height: 400px" class="mb-3"></div>
+          <b-button variant="primary" class="text-center mr-3" @click="checkLayout">check layout</b-button>
           <b-button variant="primary" class="text-center" @click="goTpcl">Go print</b-button>
         </b-col>
 
@@ -97,19 +98,24 @@
       resultTpcl: ""
     },
     methods: {
+      getTpcl: function(){
+        let jsonData = editor.getSession().getValue()
+        return JSON5.parse(jsonData)
+      },
       goTpcl: async function () {
         self = this;
         let url = "/tpclmaker";
-        let jsonData = editor.getSession().getValue()
-        //jsonObj = JSON.parse(jsonData)
-        jsonObj = JSON5.parse(jsonData)
+
+        jsonObj = this.getTpcl()
         drawLayout(jsonObj);
         await axios.post(url, jsonObj)
           .then(function (response) {
             console.log(response);
             self.resultTpcl = response.data.data
-            //window.open('/pdf/'+response.data,"_blank")
           });
+      },
+      checkLayout: function(){
+        drawLayout(this.getTpcl());
       }
     },
     watch: {
@@ -121,7 +127,6 @@
           self.jsonPdf = reader.result
           editor.getSession().setValue(reader.result)
         }
-
       }
     }
 
@@ -150,21 +155,16 @@
 
     const canvas = document.getElementById('layout');  // HTMLCanvasElement
     const ctx = canvas.getContext('2d');  // CanvasRenderingContext2D
-
-    //canvas.width = 400;
-    //canvas.height = 300;
-
-    //ctx.lineWidth = 3;
-    ctx.font = '12pt sans-serif';
-    //Label setting
-
-    console.log("conf:", conf)
+ 
+    ctx.lineWidth = 0.3;
+    ctx.font = '10pt sans-serif';
 
     let xMergin = 0;
     let yMergin = 0;
 
     ctx.clearRect(0, 0, 640, 480)
 
+    //Label setting
     if ('setLabel' in conf) {
       const sl = conf.setLabel
       const width = cvNumber(sl.width);
@@ -196,7 +196,7 @@
         let field = conf.fields.find(v => {
           if (v.command == "RC" && v.number === e.number) return v
         })
-        ctx.fillText("PC" + e.number + "/" + field.bind, x1, y1);
+        ctx.fillText("PC" + e.number + "/" + field.bind, x1, y1-3);
       });
     }
 
