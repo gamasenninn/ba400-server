@@ -20,6 +20,7 @@ app.mount("/static", StaticFiles(directory="static",html=True), name="static")
 
 #--- test 用　メインページ -----
 @app.get("/test",
+    tags=['Front end'],
     summary='Test page for sennd command',
     description='Test page for sennd command <br/>...............'
 )
