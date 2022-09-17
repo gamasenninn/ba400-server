@@ -6,15 +6,6 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
-import os
-
-from enum import Enum
-from typing import Union
-
-class ModelName(str, Enum):
-    alexnet = "alexnet"
-    resnet = "resnet"
-    lenet = "lenet"
 
 app = FastAPI()
 
@@ -27,19 +18,23 @@ app.add_middleware(
 )
 app.mount("/static", StaticFiles(directory="static",html=True), name="static")
 
-@app.get("/test")
-async def page_test():
+#--- test 用　メインページ -----
+@app.get("/test",
+    summary='Test page for sennd command',
+    description='Test page for sennd command <br/>...............'
+)
+async def test_page():
     with open("static/test-tpcl.html",encoding="utf-8") as f:
         page = f.read()
     return Response(content=page,media_type="text/html")
 
 
-@app.get("/tpclmaker")
-async def get_maketpcl():
+@app.get("/tpclmaker",tags=['tpclmaker'])
+async def simple_message_maketpcl():
     return {"message": "Hello tpcl World"}
 
-@app.get("/tpclmaker/{jsonc_file}",response_class=HTMLResponse)
-async def maketpcl_file(jsonc_file):
+@app.get("/tpclmaker/{jsonc_file}",response_class=HTMLResponse,tags=['tpclmaker'] )
+async def maketpcl_with_file(jsonc_file):
         conf = tpcl.read_jsonc_file(jsonc_file+".jsonc")
         ret = tpcl.tpcl_maker(conf)
         if ret:
@@ -47,8 +42,8 @@ async def maketpcl_file(jsonc_file):
                 response = f.read()
                 return f"<pre>{response}</pre>"
 
-@app.post("/tpclmaker")
-async def post_maketpcl(body=Body(...)):
+@app.post("/tpclmaker",tags=['tpclmaker'])
+async def maketpcl_send_and_print(body=Body(...)):
     ret = tpcl.tpcl_maker(body)
     if ret:
         with open('tpcl_send.log','r',encoding='utf-8') as f:
@@ -56,8 +51,8 @@ async def post_maketpcl(body=Body(...)):
             return {"data":response}
     return {}
 
-@app.post("/tpclmaker/status")
-async def get_status_post(body=Body(...)):
+@app.post("/tpclmaker/status",tags=['tpclmaker'])
+async def get_status(body=Body(...)):
         data =  tpcl.analize_status(body)
         return data
 
