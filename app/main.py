@@ -1,61 +1,70 @@
-from flask import Flask,make_response,redirect,request
+from fastapi import FastAPI
+from fastapi import Body,Response
+import uvicorn
 import tpcl_maker as tpcl
-import json
-import uuid
-from flask_cors import CORS, cross_origin
+from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
+from pydantic import BaseModel
+import os
 
-app = Flask(__name__)
-CORS(app, support_credentials=True)
+from enum import Enum
+from typing import Union
 
-@app.route('/test')
-def test():
-    return app.send_static_file('test-tpcl.html')
+class ModelName(str, Enum):
+    alexnet = "alexnet"
+    resnet = "resnet"
+    lenet = "lenet"
+
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+app.mount("/static", StaticFiles(directory="static",html=True), name="static")
+
+@app.get("/test")
+async def page_test():
+    with open("static/test-tpcl.html",encoding="utf-8") as f:
+        page = f.read()
+    return Response(content=page,media_type="text/html")
 
 
+@app.get("/tpclmaker")
+async def get_maketpcl():
+    return {"message": "Hello tpcl World"}
 
-
-@app.route('/tpclmaker',methods=["GET","POST"])
-@cross_origin(supports_credentials=True)
-def maketpcl():
-
-    if request.method == "GET":
-        return redirect('/tpclmaker/print_conf_ip')
-    elif request.method == "POST":
-        d = request.json
-        ret = tpcl.tpcl_maker(d)
+@app.get("/tpclmaker/{jsonc_file}",response_class=HTMLResponse)
+async def maketpcl_file(jsonc_file):
+        conf = tpcl.read_jsonc_file(jsonc_file+".jsonc")
+        ret = tpcl.tpcl_maker(conf)
         if ret:
             with open('tpcl_send.log','r',encoding='utf-8') as f:
                 response = f.read()
-                return {"data":response}
-        return {}
+                return f"<pre>{response}</pre>"
 
-@app.route('/tpclmaker/<jsonc_file>')
-@cross_origin(supports_credentials=True)
-def maketpcl_file(jsonc_file):
-
-    conf = tpcl.read_jsonc_file(jsonc_file+".jsonc")
-    ret = tpcl.tpcl_maker(conf)
+@app.post("/tpclmaker")
+async def post_maketpcl(body=Body(...)):
+    ret = tpcl.tpcl_maker(body)
     if ret:
         with open('tpcl_send.log','r',encoding='utf-8') as f:
             response = f.read()
-            return f"<pre>{response}</pre>"
+            return {"data":response}
+    return {}
 
-@app.route('/tpclmaker/status/<jsonc_file>')
-@cross_origin(supports_credentials=True)
-def get_status(jsonc_file):
+@app.post("/tpclmaker/status")
+async def get_status_post(body=Body(...)):
+        data =  tpcl.analize_status(body)
+        return data
 
-    #return jsonc_file
-    conf = tpcl.read_jsonc_file(jsonc_file+".jsonc")
-    data =  tpcl.analize_status(conf)
-    return json.dumps(data, indent=2, ensure_ascii=False)
-
-@app.route('/tpclmaker/status',methods=["POST"])
-@cross_origin(supports_credentials=True)
-def get_status_post():
-        d = request.json
-        data =  tpcl.analize_status(d)
-        return json.dumps(data, indent=2, ensure_ascii=False)
+@app.get("/")
+async def root():
+    return {"message": "Hello World"}
 
 if __name__ == '__main__':
-
-    app.run(host='0.0.0.0', port=8100, debug=True)
+    # コンソールで [$ uvicorn run:app --reload]でも可
+    uvicorn.run("main:app",port=5020,reload=True,host="0.0.0.0")
