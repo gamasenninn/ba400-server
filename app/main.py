@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from fastapi import Body,Response
-import uvicorn
+#import uvicorn
 import tpcl_maker as tpcl
-from fastapi.staticfiles import StaticFiles
+#from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
@@ -16,7 +16,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.mount("/static", StaticFiles(directory="static",html=True), name="static")
+#app.mount("/static", StaticFiles(directory="static",html=True), name="static")
 
 #--- test 用　メインページ -----
 @app.get("/test",
@@ -61,6 +61,6 @@ async def get_status(body=Body(...)):
 async def root():
     return {"message": "Hello World"}
 
-if __name__ == '__main__':
+#if __name__ == '__main__':
     # コンソールで [$ uvicorn run:app --reload]でも可
-    uvicorn.run("main:app",port=5020,reload=True,host="0.0.0.0")
+    #uvicorn.run("main:app",port=5020,reload=True,host="0.0.0.0")
