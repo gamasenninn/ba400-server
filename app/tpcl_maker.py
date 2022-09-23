@@ -56,7 +56,7 @@ def check_status(conf):
     ip = conf['device']['ip']
     port = int(conf['device']['port'])
     response = {}
-    with socket.socket(socket.AF_INET, 0, 0) as sock:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         # connect to printer
         sock.settimeout(SOCKET_TIME_OUT)
         sock.connect((ip, port))
@@ -211,7 +211,7 @@ def tpcl_maker(conf):
     IS_SEND = eval(conf['device']['isPrintOut']
                    ) if 'isPrintOut' in conf['device'] else False
     # create socket
-    with socket.socket(socket.AF_INET, 0, 0) as sock:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         # connect to printer
         sock.settimeout(SOCKET_TIME_OUT)
         try:
