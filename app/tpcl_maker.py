@@ -30,8 +30,17 @@ def ssend(com_str, socket, prt_encoding='cp932'):
 
 def ssend_recv(com_str, socket, prt_encoding='cp932'):
     b_com = b'\x1b' + com_str.encode(prt_encoding) + b'\x0a\x00'
-    socket.send(b_com)
-    data = socket.recv(1024)
+    if IS_SEND:
+        socket.send(b_com)
+        data = socket.recv(1024)
+    else:
+        data = []
+
+    if IS_LOG:
+        encoding = 'utf-8'
+        with open(LOG_FILE_PATH, 'a', encoding=encoding) as f:                # ファイルを開く (encoding 注意)
+            f.write(com_str+"\n")
+
     return data
 
 # ----- JSONC定義ファイルの読み込み -------
@@ -182,13 +191,18 @@ def send_tcpl_all(conf, sock):
             if f['command'] == "RC":
                 command = f"RC{f['number']};{bind_v}"
                 ssend(command, sock)
-            if f['command'] == "RB":
+            elif f['command'] == "RB":
                 command = f"RB{f['number']};{bind_v}"
                 ssend(command, sock)
-            if f['command'] == "XS":
+            elif f['command'] == "XS":
                 command = f"XS;I,{f['copies']},{f['cutInterval']}{f['censorType']}{f['mode']}{f['speed']}{f['ribbon']}{f['tagRotation']}{f['statusResponse']}"
                 ssend(command, sock)
-
+            elif f['command'] == "@12":
+                command = f"@012;w,T24,U0={bind_v}"
+                #ssend(command, sock)
+                print(command)
+                ret = ssend_recv(command, sock)
+                print("recv data:",ret)
     # final
     finals = conf['final']
     for fin in finals:
