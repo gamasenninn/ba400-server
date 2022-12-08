@@ -15,7 +15,7 @@ print("info:",sinfo)
 #sys.exit()
 
 # ソケット作成
-sock = socket.socket(socket.AF_INET,0,0)
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 # サーバーへ接続
 sock.connect((IPADDR, PORT))

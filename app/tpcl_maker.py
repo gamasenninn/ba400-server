@@ -11,6 +11,7 @@ SOCKET_TIME_OUT = 5
 # ----- error code -----
 ERR_SOCKET_TIME_OUT = -101
 ERR_CNNECTION_REFUSED = -102
+ERR_RECIEVE_TIME_OUT = -103
 
 # ----コマンド送信 -----
 
@@ -26,6 +27,13 @@ def ssend(com_str, socket, prt_encoding='cp932'):
         with open(LOG_FILE_PATH, 'a', encoding=encoding) as f:                # ファイルを開く (encoding 注意)
             f.write(com_str+"\n")
 
+
+def ssend_recv(com_str, socket, prt_encoding='cp932'):
+    b_com = b'\x1b' + com_str.encode(prt_encoding) + b'\x0a\x00'
+    socket.send(b_com)
+    data = socket.recv(1024)
+    return data
+
 # ----- JSONC定義ファイルの読み込み -------
 
 
@@ -40,35 +48,87 @@ def read_jsonc_file(jsonc_filepath, encoding='utf-8'):
             print('ファイルが存在しません。')
             return {}
 
-# ------ tpcl コマンドを編集し、送信する ------
+# ------ check status -----
 
 
-def tpcl_maker(conf):
-    if IS_LOG:
-        encoding = 'utf-8'
-        with open(LOG_FILE_PATH, 'w', encoding=encoding) as f:                # ファイルを開く (encoding 注意)
-            pass
-
+def check_status(conf):
     # --- printer IP ----
     ip = conf['device']['ip']
     port = int(conf['device']['port'])
-    # if 'isPrintOut' in conf['device']:
-    global IS_SEND
-    IS_SEND = eval(conf['device']['isPrintOut']
-                   ) if 'isPrintOut' in conf['device'] else False
-    # create socket
-# with で全体を囲んだほうがよいのではないか？
-    sock = socket.socket(socket.AF_INET, 0, 0)
-    # connect to printer
-    sock.settimeout(SOCKET_TIME_OUT)
-    try:
+    response = {}
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        # connect to printer
+        sock.settimeout(SOCKET_TIME_OUT)
         sock.connect((ip, port))
-    except socket.timeout:  # タイムアウトエラー
-        sock.close()
-        return ERR_SOCKET_TIME_OUT
-    except ConnectionRefusedError:  # コネクション拒否エラー
-        sock.close()
-        return ERR_CNNECTION_REFUSED
+        commands = ["WN", "WS", "WA", "WB", "WV"]
+        for command in commands:
+            data = ssend_recv(command, sock)
+            response[command] = data
+    return response
+
+
+def analize_status(conf):
+    result = check_status(conf)
+    data = []
+    for k, v in result.items():
+        if k == "WS": 
+            data.append(
+                {
+                    "command": k,
+                    "status": v[2:4].decode(),
+                    "status2": v[4:5].decode(),
+                    "remainPaper": v[5:9].decode()
+                }
+            )
+        elif k== "WB":
+            data.append(
+                {
+                    "command": k,
+                    "status": v[2:4].decode(),
+                    "status2": v[4:5].decode(),
+                    "remainPaper": v[5:9].decode(),
+                    "length": v[9:11].decode(),
+                    "buffReamain": v[11:16].decode(),
+                    "buffSize": v[16:21].decode(),
+                }
+            )
+        elif k== "WN":
+            data.append(
+                {
+                    "command": k,
+                    "usb": v[3:4].decode(),
+                    "RTC": v[4:5].decode(),
+                    "100base": v[5:6].decode(),
+                    "usbFunc": v[6:7].decode(),
+                    "cutter": v[7:8].decode(),
+                    "sirial": v[8:9].decode(),
+                    "centro": v[9:10].decode(),
+                    "RS232C": v[10:11].decode(),
+                    "wlan": v[11:12].decode(),
+                }
+            )
+        elif k== "WA":
+            data.append(
+                {
+                    "command": k,
+                    "mac": v[2:19].decode(),
+                }
+            )
+        elif k== "WV":
+            data.append(
+                {
+                    "command": k,
+                    "createDate": v[2:11].decode(),
+                    "type": v[11:18].decode(),
+                    "version": v[18:23].decode(),
+                }
+            )
+    #print(data)
+    return data
+
+
+# ------ tpcl コマンドを編集し、送信する ------
+def send_tcpl_all(conf, sock):
 
     # --- D: setttingLable ----
     sl = conf['setLabel']
@@ -136,8 +196,32 @@ def tpcl_maker(conf):
             command = f"IB"
             ssend(command, sock)
 
-    sock.shutdown(socket.SHUT_RDWR)
-    sock.close()
+
+def tpcl_maker(conf):
+    if IS_LOG:
+        encoding = 'utf-8'
+        with open(LOG_FILE_PATH, 'w', encoding=encoding) as f:                # ファイルを開く (encoding 注意)
+            pass
+
+    # --- printer IP ----
+    ip = conf['device']['ip']
+    port = int(conf['device']['port'])
+    # if 'isPrintOut' in conf['device']:
+    global IS_SEND
+    IS_SEND = eval(conf['device']['isPrintOut']
+                   ) if 'isPrintOut' in conf['device'] else False
+    # create socket
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        # connect to printer
+        sock.settimeout(SOCKET_TIME_OUT)
+        try:
+            sock.connect((ip, port))
+        except socket.timeout:  # タイムアウトエラー
+            return ERR_SOCKET_TIME_OUT
+        except ConnectionRefusedError:  # コネクション拒否エラー
+            return ERR_CNNECTION_REFUSED
+
+        send_tcpl_all(conf, sock)
 
     return True
 

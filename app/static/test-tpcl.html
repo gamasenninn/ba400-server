@@ -27,7 +27,8 @@
 <!-- Load the following for BootstrapVueIcons support -->
 <script src="https://unpkg.com/bootstrap-vue@2.21.1/dist/bootstrap-vue-icons.min.js"></script>
 
-<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<!-- script src="https://unpkg.com/axios/dist/axios.min.js"></script> -->
+<script src="https://cdn.jsdelivr.net/npm/axios@1.0.0/dist/axios.min.js"></script> 
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
   integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
@@ -65,6 +66,7 @@
       <b-row class="mt-3">
         <b-col>
           <div id="editor" style="min-height: 400px" class="mb-3"></div>
+          <b-button variant="primary" class="text-center mr-3" @click="checkLayout">check layout</b-button>
           <b-button variant="primary" class="text-center" @click="goTpcl">Go print</b-button>
         </b-col>
 
@@ -81,6 +83,15 @@
           <pre class="mt-2">{{resultTpcl}}</pre>
         </b-col>
       </b-row>
+      <b-row>
+        <b-col>
+          <h2 class="mt-3">ステータス</h2>
+          <b-button variant="primary" class="text-center" @click="getStatus">ステータス取得</b-button>
+          <h3 class="mt-2">{{statusMessage}}</h3>
+          <pre class="mt-2">{{analizeStatus}}</pre>
+        </b-col>
+      </b-row>
+
     </b-card>
   </b-container>
 
@@ -94,22 +105,48 @@
     data: {
       //jsonPdf: [],
       upfile: "",
-      resultTpcl: ""
+      resultTpcl: "",
+      analizeStatus: "",
+      statusMessage: "",
     },
     methods: {
+      getTpcl: function () {
+        let jsonData = editor.getSession().getValue()
+        return JSON5.parse(jsonData)
+      },
       goTpcl: async function () {
         self = this;
         let url = "/tpclmaker";
-        let jsonData = editor.getSession().getValue()
-        //jsonObj = JSON.parse(jsonData)
-        jsonObj = JSON5.parse(jsonData)
+
+        jsonObj = this.getTpcl()
         drawLayout(jsonObj);
         await axios.post(url, jsonObj)
           .then(function (response) {
             console.log(response);
             self.resultTpcl = response.data.data
-            //window.open('/pdf/'+response.data,"_blank")
           });
+      },
+      checkLayout: function () {
+        drawLayout(this.getTpcl());
+      },
+      getStatus: async function () {
+        self = this;
+        let url = "/tpclmaker/status";
+        jsonObj = this.getTpcl()
+        await axios.post(url, jsonObj)
+          .then(function (response) {
+            self.analizeStatus = response.data
+            wn = response.data.find(e=>{
+              if (e.command == "WS"){
+                return e
+              }
+            })
+          });
+        if(wn.status in statusCodes){
+          this.statusMessage = statusCodes[wn.status]
+        }else{
+          this.statusMessage = wn.status
+        }
       }
     },
     watch: {
@@ -121,7 +158,6 @@
           self.jsonPdf = reader.result
           editor.getSession().setValue(reader.result)
         }
-
       }
     }
 
@@ -151,20 +187,15 @@
     const canvas = document.getElementById('layout');  // HTMLCanvasElement
     const ctx = canvas.getContext('2d');  // CanvasRenderingContext2D
 
-    //canvas.width = 400;
-    //canvas.height = 300;
-
-    //ctx.lineWidth = 3;
-    ctx.font = '12pt sans-serif';
-    //Label setting
-
-    console.log("conf:", conf)
+    ctx.lineWidth = 0.3;
+    ctx.font = '10pt sans-serif';
 
     let xMergin = 0;
     let yMergin = 0;
 
     ctx.clearRect(0, 0, 640, 480)
 
+    //Label setting
     if ('setLabel' in conf) {
       const sl = conf.setLabel
       const width = cvNumber(sl.width);
@@ -196,7 +227,7 @@
         let field = conf.fields.find(v => {
           if (v.command == "RC" && v.number === e.number) return v
         })
-        ctx.fillText("PC" + e.number + "/" + field.bind, x1, y1);
+        ctx.fillText("PC" + e.number + "/" + field.bind, x1, y1 - 3);
       });
     }
 
@@ -233,6 +264,27 @@
     }
   }
 
+</script>
+
+<script>
+statusCodes = {
+  "00": "ON LINE",
+  "01": "HEAD OPEN",
+  "02": "ON LINE",
+  "04": "PAUSE",
+  "05": "ON LINE",
+  "06": "COMMAND ERROR",
+  "07": "COMMS ERROR",
+  "11": "PAPER JAM",
+  "12": "CUTTER ERROR",
+  "13": "NO PAPER",
+  "14": "NO RIBBON",
+  "15": "HEAD OPEN",
+  "17": "HEAD ERROR",
+  "18": "EXCESS HEAD TEMP",
+  "21": "RIBBON ERROR",
+  "24": "COVER OPEN",
+}
 </script>
 
 </html>

@@ -1,42 +1,66 @@
-from flask import Flask,make_response,redirect,request
+from fastapi import FastAPI
+from fastapi import Body,Response
+#import uvicorn
 import tpcl_maker as tpcl
-import json
-import uuid
-from flask_cors import CORS, cross_origin
+#from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
+from pydantic import BaseModel
 
-app = Flask(__name__)
-CORS(app, support_credentials=True)
+app = FastAPI()
 
-@app.route('/test')
-def test():
-    return app.send_static_file('test-tpcl.html')
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+#app.mount("/static", StaticFiles(directory="static",html=True), name="static")
 
-@app.route('/tpclmaker',methods=["GET","POST"])
-@cross_origin(supports_credentials=True)
-def makepdf():
+#--- test 用　メインページ -----
+@app.get("/test",
+    tags=['Front end'],
+    summary='Test page for sennd command',
+    description='Test page for sennd command <br/>...............'
+)
+async def test_page():
+    with open("static/test-tpcl.html",encoding="utf-8") as f:
+        page = f.read()
+    return Response(content=page,media_type="text/html")
 
-    if request.method == "GET":
-        return redirect('/tpclmaker/print_conf_ip')
-    elif request.method == "POST":
-        d = request.json
-        ret = tpcl.tpcl_maker(d)
+
+@app.get("/tpclmaker",tags=['tpclmaker'])
+async def simple_message_maketpcl():
+    return {"message": "Hello tpcl World"}
+
+@app.get("/tpclmaker/{jsonc_file}",response_class=HTMLResponse,tags=['tpclmaker'] )
+async def maketpcl_with_file(jsonc_file):
+        conf = tpcl.read_jsonc_file(jsonc_file+".jsonc")
+        ret = tpcl.tpcl_maker(conf)
         if ret:
             with open('tpcl_send.log','r',encoding='utf-8') as f:
                 response = f.read()
-                return {"data":response}
-        return {}
+                return f"<pre>{response}</pre>"
 
-@app.route('/tpclmaker/<jsonc_file>')
-@cross_origin(supports_credentials=True)
-def makepdf_file(jsonc_file):
-
-    conf = tpcl.read_jsonc_file(jsonc_file+".jsonc")
-    ret = tpcl.tpcl_maker(conf)
+@app.post("/tpclmaker",tags=['tpclmaker'])
+async def maketpcl_send_and_print(body=Body(...)):
+    ret = tpcl.tpcl_maker(body)
     if ret:
         with open('tpcl_send.log','r',encoding='utf-8') as f:
             response = f.read()
-            return f"<pre>{response}</pre>"
+            return {"data":response}
+    return {}
 
-if __name__ == '__main__':
+@app.post("/tpclmaker/status",tags=['tpclmaker'])
+async def get_status(body=Body(...)):
+        data =  tpcl.analize_status(body)
+        return data
 
-    app.run(host='0.0.0.0', port=8100, debug=True)
+@app.get("/")
+async def root():
+    return {"message": "Hello World"}
+
+#if __name__ == '__main__':
+    # コンソールで [$ uvicorn run:app --reload]でも可
+    #uvicorn.run("main:app",port=5020,reload=True,host="0.0.0.0")
