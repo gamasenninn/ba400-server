@@ -11,9 +11,16 @@
     },
     //Initial setting label size
     "setLabel": {
-        "pitch": "0830",
-        "width": "1057",
-        "height": "0750"
+        "pitch": "0857",
+        "width": "0950",
+        "height": "0805",
+        "isFeed": "False",
+        "censorType": "3", //0-4
+        "cutter": "1",
+        "mode": "C", //C,D,E
+        "speed": "2", //2,4,6,8
+        "ribbon": "2" //0,1,2
+        
     },
     //Format configration
     "setFormat": {
@@ -118,20 +125,20 @@
             "default": "12345-1"
         },
         {
+            "command": "@12",  //RFID 書き込みコマンド
+            "bind": "scode",
+            "default": "12345-1"
+        },
+        {
             "command": "XS",
             "copies": "0001",
             "cutInterval": "000",
-            "censorType": "2", //0-4
+            "censorType": "3", //0-4
             "mode": "C", //C,D,E
             "speed": "2", //2,4,6,8
             "ribbon": "2", //0,1,2
             "tagRotation": "0",
             "statusResponse": "0" //0,1
-        },
-        {
-            "command": "@12",  //RFID 書き込みコマンド
-            "bind": "scode",
-            "default": "12345-1"
         }
 
     ],
@@ -140,12 +147,6 @@
             "scode": "14687-1",
             "datePerson": "2020/12/22 田中",
             "title": "コンバインAA580 58馬力 クボタ 3条刈 自動水平",
-            "qrData": "https://www.google.com/search?q=%E9%A3%9B%E8%A1%8C%E8%88%B9"            
-        },
-        {
-            "scode": "14687-2",
-            "datePerson": "2020/12/22 佐藤",
-            "title": "トラクターBB999 30馬力 ヤンマー 自動水平",
             "qrData": "https://www.google.com/search?q=%E9%A3%9B%E8%A1%8C%E8%88%B9"            
         }
     ],

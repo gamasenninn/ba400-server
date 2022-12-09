@@ -140,9 +140,20 @@ def analize_status(conf):
 def send_tcpl_all(conf, sock):
 
     # --- D: setttingLable ----
-    sl = conf['setLabel']
-    command = f"D{sl['pitch']},{sl['width']},{sl['height']}"
-    ssend(command, sock)
+    if conf['setLabel']:
+        sl = conf['setLabel']
+        command = f"D{sl['pitch']},{sl['width']},{sl['height']}"
+        ssend(command, sock)
+        if sl['isFeed']:
+            if sl['isFeed'] == "True":
+                censorType = sl['censorType']
+                cutter = sl['cutter']
+                mode = sl['mode']
+                speed = sl['speed']
+                ribbon = sl['ribbon']
+                command = f"T{censorType}{cutter}{mode}{speed}{ribbon}"
+                ssend(command, sock)
+
 
     # --- define format ----
     sf = conf['setFormat']
@@ -206,9 +217,10 @@ def send_tcpl_all(conf, sock):
     # final
     finals = conf['final']
     for fin in finals:
-        if fin['command'] == "IB":
-            command = f"IB"
-            ssend(command, sock)
+        if 'command' in fin:
+            if fin['command'] == "IB":
+                command = f"IB"
+                ssend(command, sock)
 
 
 def tpcl_maker(conf):
