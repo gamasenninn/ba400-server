@@ -12,7 +12,7 @@
     //Initial setting label size
     "setLabel": {
         "pitch": "0857",
-        "width": "1000",
+        "width": "1050",
         "height": "0805",
         "isFeed": "False",
         "censorType": "3", //0-4
@@ -69,7 +69,7 @@
         "XB_QR": [
             {
                 "number": "01",
-                "x": "0710",
+                "x": "0770",
                 "y": "0100",
                 "errorLevel": "M", //L,M,Q,H
                 "cellSize": "07", //00～52
@@ -82,7 +82,7 @@
             {
                 "number": "02",
                 "x": "0050",
-                "y": "0200",
+                "y": "0230",
                 "type": "9", //0,5,6,7,8,9,A......
                 "digit": "3", //1-5
                 "width": "05", //01-15
@@ -144,8 +144,8 @@
     ],
     "data":[
         {
-            "scode": "14687-1-10",
-            "datePerson": "2020/12/22 田中",
+            "scode": "14687-1-1-1",
+            "datePerson": "2020/12/22 田中123456789",
             "title": "コンバインAA580 58馬力 クボタ 3条刈 自動水平",
             "qrData": "https://www.google.com/search?q=%E9%A3%9B%E8%A1%8C%E8%88%B9"            
         }
